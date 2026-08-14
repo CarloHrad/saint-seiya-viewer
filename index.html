@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Saint Seiya Database</title>
+
+  <style>
+    :root {
+      --bg: #080d1a;
+      --panel: #111827;
+      --panel-hover: #182235;
+      --border: #263449;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --gold: #f5c542;
+      --blue: #60a5fa;
+      --purple: #a78bfa;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at top, #172554 0, var(--bg) 45%);
+      color: var(--text);
+      font-family:
+        Inter, system-ui, -apple-system, BlinkMacSystemFont,
+        "Segoe UI", sans-serif;
+    }
+
+    header {
+      padding: 55px 20px 40px;
+      text-align: center;
+    }
+
+    header .symbol {
+      font-size: 48px;
+    }
+
+    h1 {
+      margin: 10px 0;
+      font-size: clamp(30px, 5vw, 52px);
+      color: var(--gold);
+    }
+
+    header p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .container {
+      width: min(1200px, 94%);
+      margin: auto;
+    }
+
+    .search-box {
+      position: sticky;
+      top: 10px;
+      z-index: 10;
+      margin-bottom: 25px;
+    }
+
+    #search {
+      width: 100%;
+      padding: 18px 22px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(17, 24, 39, .95);
+      color: white;
+      font-size: 17px;
+      outline: none;
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+
+    #search:focus {
+      border-color: var(--purple);
+    }
+
+    .categories {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      margin-bottom: 35px;
+    }
+
+    .category {
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 9px;
+      cursor: pointer;
+    }
+
+    .category:hover,
+    .category.active {
+      background: #312e81;
+      border-color: var(--purple);
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .section-header h2 {
+      margin: 0;
+    }
+
+    .counter {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns:
+        repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      background: rgba(17, 24, 39, .95);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      cursor: pointer;
+      transition:
+        transform .15s,
+        border-color .15s,
+        background .15s;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      background: var(--panel-hover);
+      border-color: #4f46e5;
+    }
+
+    .card h3 {
+      margin: 0 0 15px;
+      color: var(--gold);
+    }
+
+    .info {
+      margin: 9px 0;
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+
+    .value {
+      margin-top: 3px;
+      line-height: 1.45;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      margin: 2px;
+      border-radius: 6px;
+      background: #1e1b4b;
+      color: #c4b5fd;
+      font-size: 13px;
+    }
+
+    .empty,
+    .loading {
+      text-align: center;
+      padding: 70px 20px;
+      color: var(--muted);
+    }
+
+    /* Modal */
+
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: rgba(0,0,0,.78);
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .modal.open {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-content {
+      width: min(850px, 100%);
+      max-height: 90vh;
+      overflow-y: auto;
+      background: #111827;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 30px;
+      position: relative;
+    }
+
+    .close {
+      position: absolute;
+      right: 18px;
+      top: 12px;
+      border: 0;
+      background: none;
+      color: var(--muted);
+      font-size: 32px;
+      cursor: pointer;
+    }
+
+    .modal-title {
+      color: var(--gold);
+      font-size: 30px;
+      margin: 0 45px 25px 0;
+    }
+
+    .detail {
+      padding: 16px 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .detail-name {
+      color: var(--blue);
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .detail-value {
+      line-height: 1.6;
+    }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      padding: 50px 20px;
+      font-size: 13px;
+    }
+
+    footer a {
+      color: var(--blue);
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <div class="symbol">⚔️</div>
+
+  <h1>Saint Seiya Database</h1>
+
+  <p>
+    Uma maneira simples de explorar os dados de Saint Seiya
+  </p>
+</header>
+
+<main class="container">
+
+  <div class="search-box">
+    <input
+      id="search"
+      type="search"
+      placeholder="🔎 Pesquisar..."
+      autocomplete="off"
+    >
+  </div>
+
+  <nav id="categories" class="categories"></nav>
+
+  <div class="section-header">
+    <h2 id="title">Escolha uma categoria</h2>
+    <span id="counter" class="counter"></span>
+  </div>
+
+  <section id="content" class="empty">
+    Selecione uma categoria acima para começar.
+  </section>
+
+</main>
+
+<div id="modal" class="modal">
+
+  <div class="modal-content">
+
+    <button
+      class="close"
+      onclick="closeModal()"
+      aria-label="Fechar"
+    >
+      ×
+    </button>
+
+    <div id="modalBody"></div>
+
+  </div>
+
+</div>
+
+<footer>
+
+  Dados:
+  <a
+    href="https://github.com/diegochagas/saint-seiya-api-data"
+    target="_blank"
+  >
+    saint-seiya-api-data
+  </a>
+
+</footer>
+
+<script>
+
+  /*
+   * Repositório oficial dos dados.
+   */
+  const BASE =
+    "https://raw.githubusercontent.com/" +
+    "diegochagas/saint-seiya-api-data/master/";
+
+  /*
+   * Coleções principais.
+   *
+   * Podemos adicionar/remover categorias posteriormente.
+   */
+  const COLLECTIONS = [
+    "characters",
+    "saints",
+    "attacks",
+    "masters",
+    "places",
+    "ranks",
+    "nationality",
+    "clothes",
+    "artists",
+    "attackers",
+    "curiosities",
+    "debuts",
+    "familyMembers",
+    "kinships",
+    "classNames"
+  ];
+
+  let currentCollection = null;
+  let currentData = [];
+
+
+  const $ = id =>
+    document.getElementById(id);
+
+
+  function humanize(text) {
+
+    return text
+      .replace(/([a-z])([A-Z])/g, "$1 $2")
+      .replace(/[_-]/g, " ")
+      .replace(/\b\w/g, c => c.toUpperCase());
+
+  }
+
+
+  function escapeHtml(value) {
+
+    return String(value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+
+  }
+
+
+  function renderCategories() {
+
+    const element = $("categories");
+
+    element.innerHTML = "";
+
+    COLLECTIONS.forEach(collection => {
+
+      const button =
+        document.createElement("button");
+
+      button.className = "category";
+
+      button.textContent =
+        humanize(collection);
+
+      button.onclick =
+        () => loadCollection(collection);
+
+      element.appendChild(button);
+
+    });
+
+  }
+
+
+  async function loadCollection(collection) {
+
+    currentCollection = collection;
+
+    $("title").textContent =
+      humanize(collection);
+
+    $("counter").textContent = "";
+
+    $("content").innerHTML =
+      '<div class="loading">Carregando...</div>';
+
+    document
+      .querySelectorAll(".category")
+      .forEach(button => {
+
+        button.classList.toggle(
+          "active",
+          button.textContent ===
+            humanize(collection)
+        );
+
+      });
+
+
+    try {
+
+      const response = await fetch(
+        BASE +
+        collection +
+        "/index.json"
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          "Não foi possível carregar os dados."
+        );
+      }
+
+      const data =
+        await response.json();
+
+      if (Array.isArray(data)) {
+
+        currentData = data;
+
+      } else if (
+        data &&
+        typeof data === "object"
+      ) {
+
+        currentData =
+          Object.values(data);
+
+      } else {
+
+        currentData = [];
+
+      }
+
+      render();
+
+    } catch (error) {
+
+      console.error(error);
+
+      $("content").innerHTML = `
+        <div class="empty">
+          <h3>Não foi possível carregar esta coleção.</h3>
+          <p>${escapeHtml(error.message)}</p>
+        </div>
+      `;
+
+    }
+
+  }
+
+
+  function getTitle(item, index) {
+
+    if (
+      !item ||
+      typeof item !== "object"
+    ) {
+      return String(item);
+    }
+
+    const fields = [
+      "name",
+      "title",
+      "fullName",
+      "characterName",
+      "saintName",
+      "attackName",
+      "description"
+    ];
+
+    for (const field of fields) {
+
+      if (
+        typeof item[field] === "string" &&
+        item[field].trim()
+      ) {
+        return item[field];
+      }
+
+    }
+
+    return `${humanize(currentCollection)} #${index + 1}`;
+
+  }
+
+
+  function formatValue(value) {
+
+    if (
+      value === null ||
+      value === undefined
+    ) {
+      return "";
+    }
+
+
+    if (Array.isArray(value)) {
+
+      return value
+        .map(item =>
+          `<span class="badge">${
+            escapeHtml(
+              typeof item === "object"
+                ? JSON.stringify(item)
+                : item
+            )
+          }</span>`
+        )
+        .join("");
+
+    }
+
+
+    if (
+      typeof value === "object"
+    ) {
+
+      return Object.entries(value)
+        .map(([key, val]) => `
+          <div class="info">
+            <div class="label">
+              ${escapeHtml(humanize(key))}
+            </div>
+
+            <div class="value">
+              ${formatValue(val)}
+            </div>
+          </div>
+        `)
+        .join("");
+
+    }
+
+
+    return escapeHtml(value);
+
+  }
+
+
+  function renderCard(item, index) {
+
+    const card =
+      document.createElement("article");
+
+    card.className = "card";
+
+    const title =
+      getTitle(item, index);
+
+    let html =
+      `<h3>${escapeHtml(title)}</h3>`;
+
+
+    if (
+      item &&
+      typeof item === "object"
+    ) {
+
+      let shown = 0;
+
+      for (
+        const [key, value]
+        of Object.entries(item)
+      ) {
+
+        if (
+          value === null ||
+          value === undefined ||
+          value === ""
+        ) {
+          continue;
+        }
+
+        if (shown >= 3) {
+          break;
+        }
+
+        html += `
+          <div class="info">
+
+            <div class="label">
+              ${escapeHtml(humanize(key))}
+            </div>
+
+            <div class="value">
+              ${formatValue(value)}
+            </div>
+
+          </div>
+        `;
+
+        shown++;
+
+      }
+
+    }
+
+
+    card.innerHTML = html;
+
+    card.onclick =
+      () => openModal(item, title);
+
+    return card;
+
+  }
+
+
+  function render() {
+
+    const search =
+      $("search")
+        .value
+        .trim()
+        .toLowerCase();
+
+
+    const filtered =
+      currentData.filter(item =>
+        JSON.stringify(item)
+          .toLowerCase()
+          .includes(search)
+      );
+
+
+    $("counter").textContent =
+      `${filtered.length} registros`;
+
+
+    if (!filtered.length) {
+
+      $("content").innerHTML = `
+        <div class="empty">
+          Nenhum resultado encontrado.
+        </div>
+      `;
+
+      return;
+
+    }
+
+
+    const grid =
+      document.createElement("div");
+
+    grid.className = "grid";
+
+
+    filtered.forEach((item, index) => {
+
+      grid.appendChild(
+        renderCard(item, index)
+      );
+
+    });
+
+
+    $("content").innerHTML = "";
+
+    $("content").appendChild(grid);
+
+  }
+
+
+  function openModal(item, title) {
+
+    let html = `
+      <h2 class="modal-title">
+        ${escapeHtml(title)}
+      </h2>
+    `;
+
+
+    if (
+      item &&
+      typeof item === "object"
+    ) {
+
+      for (
+        const [key, value]
+        of Object.entries(item)
+      ) {
+
+        if (
+          value === null ||
+          value === undefined ||
+          value === ""
+        ) {
+          continue;
+        }
+
+        html += `
+          <div class="detail">
+
+            <div class="detail-name">
+              ${escapeHtml(humanize(key))}
+            </div>
+
+            <div class="detail-value">
+              ${formatValue(value)}
+            </div>
+
+          </div>
+        `;
+
+      }
+
+    } else {
+
+      html += `
+        <div class="detail">
+          ${escapeHtml(item)}
+        </div>
+      `;
+
+    }
+
+
+    $("modalBody").innerHTML = html;
+
+    $("modal").classList.add("open");
+
+  }
+
+
+  function closeModal() {
+
+    $("modal")
+      .classList.remove("open");
+
+  }
+
+
+  $("search")
+    .addEventListener("input", () => {
+
+      if (currentCollection) {
+        render();
+      }
+
+    });
+
+
+  $("modal")
+    .addEventListener("click", event => {
+
+      if (
+        event.target === $("modal")
+      ) {
+        closeModal();
+      }
+
+    });
+
+
+  document.addEventListener(
+    "keydown",
+    event => {
+
+      if (event.key === "Escape") {
+        closeModal();
+      }
+
+    }
+  );
+
+
+  renderCategories();
+
+</script>
+
+</body>
+</html>
